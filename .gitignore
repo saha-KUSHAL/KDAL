@@ -2,3 +2,4 @@
 /vendor
 /vendor/*
 /.idea/vcs.xml
+/.idea/.gitignore
