@@ -1,0 +1,23 @@
+{
+    "name": "kushal/kdal",
+    "description": "A simple and lightweight ORM",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Kushal\\Kdal\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "saha-KUSHAL",
+            "email": "kushal.saha@outlook.com"
+        }
+    ],
+    "minimum-stability": "alpha",
+    "require": {
+        "vlucas/phpdotenv": "^5.6",
+        "monolog/monolog": "^2.10",
+        "ext-pdo": "*"
+    }
+}
