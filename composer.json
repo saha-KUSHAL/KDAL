@@ -6,6 +6,8 @@
     "autoload": {
         "psr-4": {
             "Kushal\\Kdal\\": "src/"
+            "Kushal\\Kdal\\": "src/",
+            "Model\\": "src/Model/",
         }
     },
     "authors": [
