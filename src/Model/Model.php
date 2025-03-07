@@ -169,3 +169,37 @@ class Model
     }
 
 $model = new Model();
+    // Validate fields against database columns
+    protected function validateFields($dbFields): bool
+    {
+        // Extract local field names
+        $localFields = array_keys($this->attributes);
+
+        // Check for missing Database fields that are not in local
+        $missingInLocal = array_diff($dbFields, $localFields);
+
+        // Check for Local fields that are not in DB
+        $inLocal = array_diff($localFields, $dbFields);
+
+        $this->missingFields = [
+            'missingInLocal' => $missingInLocal,
+            'inLocal' => $inLocal  // Fixed property name (removed $)
+        ];
+
+        // Return true if there are no mismatches
+        return empty($missingInLocal) && empty($inLocal);
+    }
+
+    // Notify user about mismatches
+    protected function notifyAboutMismatch($isUpdate = false): void
+    {
+        if (!empty($this->missingFields['missingInLocal']) && !$isUpdate) {
+            $fields = implode(', ', $this->missingFields['missingInLocal']);
+            throw new Exception('Fields are missing. Add following fields: ' . $fields);
+        }
+
+        if (!empty($this->missingFields['inLocal'])) {
+            $fields = implode(', ', $this->missingFields['inLocal']);
+            throw new Exception('Fields are not in database. Remove following fields: ' . $fields);
+        }
+    }
