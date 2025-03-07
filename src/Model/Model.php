@@ -65,5 +65,13 @@ class Model
         }
     }
 }
+    // Dynamically return the value of attribute
+    // Example: echo $model -> attr
+    function __set(string $name, $value): void
+    {
+        $this->attributes[$name] = $value;
+    }
+
+
 
 $model = new Model();
