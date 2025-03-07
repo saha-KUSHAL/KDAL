@@ -3,7 +3,7 @@
 namespace Model;
 
 use Dotenv\Dotenv;
-use mysql_xdevapi\Exception;
+use Exception;
 use PDO;
 
 
@@ -12,6 +12,7 @@ class Model
     protected static $table;
     protected static $pdo;
     protected $attributes = [];
+    protected $missingFields = [];
 
     public function __construct($data = [])
     {
@@ -51,6 +52,17 @@ class Model
         // Assign the given parameters
         $this->attributes = $data;
     }
+
+    // Dynamically add the attributes.
+    // Example: $model -> attr = value
+    function __get(string $name)
+    {
+        if (isset($this->attributes[$name]))
+            return $this->attributes[$name];
+        else {
+            throw Exception("Key Not found. : Key = " . $name . "\n");
+            return null;
+        }
     }
 }
 
