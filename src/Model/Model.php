@@ -88,10 +88,13 @@ class Model
         try {
             // Fetch columns from database
             $stmt = self::$pdo->query("SHOW COLUMNS FROM " . static::$table);
-            $dbFields = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            $dbColumns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // Remove the auto increment values value
+            $dbColumns = $this->removeAutoIncrement($dbColumns);
 
             // Validate fields
-            if (!$this->validateFields($dbFields)) {
+            if (!$this->validateFields($dbColumns)) {
                 // If there are mismatches
                 if (isset($this->attributes['id'])) {
                     $this->notifyAboutMismatch(true);
@@ -101,9 +104,9 @@ class Model
             }
 
             // Prepare valid fields for the query
-            $validFields = array_intersect(array_keys($this->attributes), $dbFields);
+            $validColumns = array_intersect(array_keys($this->attributes), $dbColumns);
 
-            if (empty($validFields)) {
+            if (empty($validColumns)) {
                 throw new Exception("No valid fields to save.");
             }
 
@@ -111,9 +114,9 @@ class Model
             if (isset($this->attributes['id'])) {
                 // Prepare SET part of UPDATE statement
                 $setParts = [];
-                foreach ($validFields as $field) {
-                    if ($field !== 'id') { // Skip ID in SET clause
-                        $setParts[] = "$field = :$field";
+                foreach ($validColumns as $column) {
+                    if ($column !== 'id') { // Skip ID in SET clause
+                        $setParts[] = "$column = :$column";
                     }
                 }
 
@@ -125,8 +128,8 @@ class Model
                 $stmt = self::$pdo->prepare($sql);
 
                 // Bind values
-                foreach ($validFields as $field) {
-                    $stmt->bindValue(":$field", $this->attributes[$field]);
+                foreach ($validColumns as $column) {
+                    $stmt->bindValue(":column", $this->attributes[$column]);
                 }
 
                 // Bind the id
@@ -135,23 +138,23 @@ class Model
                 $stmt->execute();
 
                 // Check if the query is successfully
-                if($stmt->rowCount() != 0)
+                if ($stmt->rowCount() != 0)
                     echo "Record updated successfully\n";
                 else
                     echo "No rows affected. Check if the id is correct.\n";
             } // Otherwise insert a new record
             else {
-                $columns = implode(', ', $validFields);
+                $columns = implode(', ', $validColumns);
                 $placeholders = implode(', ', array_map(function ($field) {
                     return ":$field";
-                }, $validFields));
+                }, $validColumns));
 
                 $sql = "INSERT INTO " . static::$table . " ($columns) VALUES ($placeholders)";
                 $stmt = self::$pdo->prepare($sql);
 
                 // Bind values
-                foreach ($validFields as $field) {
-                    $stmt->bindValue(":$field", $this->attributes[$field]);
+                foreach ($validColumns as $column) {
+                    $stmt->bindValue(":$column", $this->attributes[$column]);
                 }
 
                 $stmt->execute();
@@ -168,7 +171,6 @@ class Model
         return true;
     }
 
-$model = new Model();
     // Validate fields against database columns
     protected function validateFields($dbFields): bool
     {
@@ -183,7 +185,7 @@ $model = new Model();
 
         $this->missingFields = [
             'missingInLocal' => $missingInLocal,
-            'inLocal' => $inLocal  // Fixed property name (removed $)
+            'inLocal' => $inLocal
         ];
 
         // Return true if there are no mismatches
@@ -203,3 +205,22 @@ $model = new Model();
             throw new Exception('Fields are not in database. Remove following fields: ' . $fields);
         }
     }
+
+    // Remove column if it has auto increment
+    protected function removeAutoIncrement($dbColumns)
+    {
+        try {
+            // Using a query that doesn't need placeholders for table names
+            $sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" . static::$table . "' AND EXTRA LIKE '%auto_increment%'";
+
+            $stmt = self::$pdo->query($sql);
+            $autoIncrementColumns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (Exception $e) {
+            echo "Error: " . $e->getMessage() . "\n";
+        }
+        $dbColumns = array_filter($dbColumns, function($column) use ($autoIncrementColumns) {
+            return !in_array($column, $autoIncrementColumns);
+        });
+        return $dbColumns;
+    }
+}
