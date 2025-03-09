@@ -1,13 +1,13 @@
 {
     "name": "kushal/kdal",
-    "description": "A simple and lightweight ORM",
+    "description": "A simple and lightweight DAL (Database Abstraction Layer) using ORM",
     "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Kushal\\Kdal\\": "src/"
             "Kushal\\Kdal\\": "src/",
             "Model\\": "src/Model/",
+            "Users\\": "src/Users/"
         }
     },
     "authors": [
@@ -21,5 +21,8 @@
         "vlucas/phpdotenv": "^5.6",
         "monolog/monolog": "^2.10",
         "ext-pdo": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
     }
 }
