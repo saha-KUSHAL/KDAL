@@ -38,8 +38,7 @@ class Model
         if (!self::$pdo) {
             try {
                 $dsn = "mysql:
-                    host=$dbHost;
-                    dbname=$dbName";
+                    host=$dbHost;dbname=$dbName";
                 self::$pdo = new PDO($dsn, $dbUser, $dbPassword);
                 self::$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 echo "Database Connection successful\n";
@@ -55,12 +54,15 @@ class Model
 
     // Dynamically add the attributes.
     // Example: $model -> attr = value
+    /**
+     * @throws Exception
+     */
     function __get(string $name)
     {
         if (isset($this->attributes[$name]))
             return $this->attributes[$name];
         else {
-            throw Exception("Key Not found. : Key = " . $name . "\n");
+            throw new Exception("Key Not found. : Key = " . $name . "\n");
             return null;
         }
     }
@@ -75,6 +77,9 @@ class Model
 
     // Check if the local fields and database fields are
     // equal or not
+    /**
+     * @throws Exception
+     */
     public function save(): bool
     {
         if (empty(static::$table)) {
@@ -193,6 +198,10 @@ class Model
     }
 
     // Notify user about mismatches
+
+    /**
+     * @throws Exception
+     */
     protected function notifyAboutMismatch($isUpdate = false): void
     {
         if (!empty($this->missingFields['missingInLocal']) && !$isUpdate) {
